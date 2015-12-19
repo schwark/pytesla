@@ -60,6 +60,12 @@ class Connection(Session):
             self.login()
 
     def login(self):
+        passwd = self.passwd
+        if type(passwd) != str:
+            # We were not given a password as a string, assuming it's
+            # a function that'll return the password.
+            passwd = self.passwd()
+
         cred = {}
 
         with open(os.path.expanduser("~/.pytesla"), "r") as f:
@@ -70,7 +76,7 @@ class Connection(Session):
                             'client_id': cred['client_id'],
                             'client_secret': cred['client_secret'],
                             'email' : self.email,
-                            'password' : self.passwd } )
+                            'password' : passwd } )
 
         if 'access_token' in r:
             self.state['access_token'] = r['access_token']
