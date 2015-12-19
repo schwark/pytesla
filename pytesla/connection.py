@@ -33,7 +33,9 @@ class Session:
         return f
 
     def read_json(self, url, post_data = None):
-        data = self.read_url( url, post_data ).read()
+        f = self.read_url( url, post_data )
+        data = f.read()
+        f.close()
         return json.loads( data )
 
     def _encode(self, value):
