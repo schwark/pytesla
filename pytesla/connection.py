@@ -2,6 +2,7 @@ import json
 import urllib2
 import urllib
 from vehicle import Vehicle
+import os
 
 class Session:
     def __init__(self):
@@ -45,13 +46,20 @@ class Session:
         return value
 
 _ENDPOINT = 'https://owner-api.teslamotors.com/'
+_STATE_PATH = os.path.expanduser("~/.tesla-session")
 
 class Connection(Session):
     def __init__(self, email, passwd):
         Session.__init__(self)
-        self.login(email, passwd)
+        self.load_state()
 
-    def login(self, email, passwd):
+        self.email = email
+        self.passwd = passwd
+
+        if not 'access_token' in self.state:
+            self.login()
+
+    def login(self):
         cred = {}
 
         with open(os.path.expanduser("~/.pytesla"), "r") as f:
@@ -61,11 +69,23 @@ class Connection(Session):
                            {'grant_type': 'password',
                             'client_id': cred['client_id'],
                             'client_secret': cred['client_secret'],
-                            'email' : email,
-                            'password' : passwd } )
+                            'email' : self.email,
+                            'password' : self.passwd } )
 
         if 'access_token' in r:
             self.state['access_token'] = r['access_token']
+
+            self.save_state()
+
+    def load_state(self):
+        self.state = {}
+        if os.path.exists(_STATE_PATH):
+            with open(_STATE_PATH, "r") as f:
+                self.state = json.load(f)
+
+    def save_state(self):
+        with open(_STATE_PATH, 'w') as f:
+            json.dump(self.state, f, indent=4)
 
     def read_json_path(self, path, post_data = None):
         return Session.read_json(self, _ENDPOINT + path, post_data)
