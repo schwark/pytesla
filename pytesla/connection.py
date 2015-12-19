@@ -59,6 +59,12 @@ class Connection(Session):
         if not 'access_token' in self.state:
             self.login()
 
+        try:
+            self.vehicles()
+        except urllib2.HTTPError, e:
+            if e.code == 401 and e.reason == "Unauthorized":
+                self.login()
+
     def login(self):
         passwd = self.passwd
         if type(passwd) != str:
@@ -97,11 +103,16 @@ class Connection(Session):
         return Session.read_json(self, _ENDPOINT + path, post_data)
 
     def vehicle(self, vin):
-        return Vehicle(vin, self)
+        return self.vehicles()[vin]
 
     def vehicles(self):
-        payload = self.read_json_path('vehicles')
-        v = []
-        for p in payload:
-            v.append( Vehicle( p['vin'], self, p) )
-        return v
+        if not 'vehicles' in self.state:
+            d = self.read_json_path('api/1/vehicles')
+            self.state['vehicles'] = d['response']
+            self.save_state()
+
+        vehicles = {}
+        for v in self.state['vehicles']:
+            vehicles[v['vin']] = Vehicle(v['vin'], self, v)
+
+        return vehicles
