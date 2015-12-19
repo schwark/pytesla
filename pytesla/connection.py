@@ -25,7 +25,8 @@ class Session:
         try:
             f = req.open(self._encode(url), data=post)
         except urllib2.HTTPError, e:
-            if e.code == 401 and e.reason == "Unauthorized":
+            if e.code == 401 and e.reason == "Unauthorized" \
+               and 'access_token' in self.state:
                 del self.state['access_token']
 
             raise e
