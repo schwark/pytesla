@@ -1,5 +1,3 @@
-import urllib
-
 class CommandError(Exception):
     """Tesla Model S vehicle command returned failure"""
     pass
@@ -27,7 +25,7 @@ class Vehicle:
 
     @property
     def mobile_enabled(self):
-        p = self._conn.read_json_path('api/1/vehicles/{}/mobile_enabled' \
+        p = self._conn.read_json_path('/api/1/vehicles/{}/mobile_enabled' \
                                       .format(self.id))
         return p['response']
 
@@ -60,7 +58,7 @@ class Vehicle:
 
         if command:
             action = 'command'
-            post_data = {}
+            post_data = kwargs
 
         p = self._conn.read_json_path('api/1/vehicles/{}/{}/{}{}' \
                                       .format(self.id, action, verb, get),
@@ -123,7 +121,7 @@ class Vehicle:
         raise ValueError("Invalid sunroof state")
 
     def wake_up(self):
-        return self._conn.read_json_path('api/1/vehicles/{}/wake_up' \
+        return self._conn.read_json_path('/api/1/vehicles/{}/wake_up' \
                                          .format(self.id), {})
 
     def __repr__(self):

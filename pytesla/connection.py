@@ -1,51 +1,51 @@
 import json
-import urllib2
 import urllib
+import httplib
 from vehicle import Vehicle
 import os
 
 class Session:
     def __init__(self):
-        pass
+        self.open()
+
+    def open(self):
+        self.conn = httplib.HTTPSConnection('owner-api.teslamotors.com')
 
     def read_url(self, url, post_data = None):
         """
         Gets the url URL. Posts post_data.
         """
-        req = urllib2.build_opener()
+
+        headers = {}
 
         if 'access_token' in self.state:
-            req.addheaders = [('Authorization',
-                               'Bearer ' + str(self.state['access_token']))]
+            headers['Authorization'] = 'Bearer {}' \
+                                       .format(str(self.state['access_token']))
 
         if post_data.__class__ == dict:
             post = urllib.urlencode(post_data)
         else:
             post = post_data
-        f = None
-        try:
-            f = req.open(self._encode(url), data=post)
-        except urllib2.HTTPError, e:
-            if e.code == 401 and e.reason == "Unauthorized" \
-               and 'access_token' in self.state:
-                del self.state['access_token']
 
-            raise e
+        self.conn.request("GET" if post is None else "POST",
+                          url, post, headers)
+        response = self.conn.getresponse()
 
-        return f
+        if response.status == 401 and response.reason == "Unauthorized" \
+           and 'access_token' in self.state:
+            del self.state['access_token']
+
+        if response.status != 200:
+            raise httplib.HTTPException(response.status, response.reason)
+
+        return response
 
     def read_json(self, url, post_data = None):
-        f = self.read_url( url, post_data )
+        f = self.read_url(url, post_data)
         data = f.read()
         f.close()
-        return json.loads( data )
+        return json.loads(data)
 
-    def _encode(self, value):
-        if isinstance(value, unicode):
-            value = value.encode("utf-8")
-        return value
-
-_ENDPOINT = 'https://owner-api.teslamotors.com/'
 _STATE_PATH = os.path.expanduser("~/.tesla-session")
 
 class Connection(Session):
@@ -61,11 +61,15 @@ class Connection(Session):
 
         try:
             self.vehicles()
-        except urllib2.HTTPError, e:
-            if e.code == 401 and e.reason == "Unauthorized":
-                self.login()
+        except httplib.HTTPException, e:
+            if e.args == (401, "Unauthorized"):
+                self.login(True)
 
-    def login(self):
+    def login(self, unauthorized = False):
+        if unauthorized:
+            self.conn.close()
+            self.open()
+
         passwd = self.passwd
         if type(passwd) != str:
             # We were not given a password as a string, assuming it's
@@ -77,12 +81,12 @@ class Connection(Session):
         with open(os.path.expanduser("~/.pytesla"), "r") as f:
             cred = json.load(f)
 
-        r = self.read_json(_ENDPOINT + 'oauth/token',
+        r = self.read_json('/oauth/token',
                            {'grant_type': 'password',
                             'client_id': cred['client_id'],
                             'client_secret': cred['client_secret'],
                             'email' : self.email,
-                            'password' : passwd } )
+                            'password' : passwd })
 
         if 'access_token' in r:
             self.state['access_token'] = r['access_token']
@@ -100,14 +104,14 @@ class Connection(Session):
             json.dump(self.state, f, indent=4)
 
     def read_json_path(self, path, post_data = None):
-        return Session.read_json(self, _ENDPOINT + path, post_data)
+        return Session.read_json(self, path, post_data)
 
     def vehicle(self, vin):
         return self.vehicles()[vin]
 
     def vehicles(self):
         if not 'vehicles' in self.state:
-            d = self.read_json_path('api/1/vehicles')
+            d = self.read_json_path('/api/1/vehicles')
             self.state['vehicles'] = d['response']
             self.save_state()
 
