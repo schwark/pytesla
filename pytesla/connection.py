@@ -1,6 +1,6 @@
 import json
 import urllib
-import http.client
+from http.client import HTTPSConnection, HTTPException
 from . import vehicle
 import os
 
@@ -9,7 +9,7 @@ class Session:
         self.open()
 
     def open(self):
-        self.conn = http.client.HTTPSConnection('owner-api.teslamotors.com')
+        self._httpconn = HTTPSConnection('owner-api.teslamotors.com')
 
     def read_url(self, url, post_data = None):
         """
@@ -27,16 +27,16 @@ class Session:
         else:
             post = post_data
 
-        self.conn.request("GET" if post is None else "POST",
-                          url, post, headers)
-        response = self.conn.getresponse()
+        self._httpconn.request("GET" if post is None else "POST",
+                               url, post, headers)
+        response = self._httpconn.getresponse()
 
         if response.status == 401 and response.reason == "Unauthorized" \
            and 'access_token' in self.state:
             del self.state['access_token']
 
         if response.status != 200:
-            raise http.client.HTTPException(response.status, response.reason)
+            raise HTTPException(response.status, response.reason)
 
         return response
 
@@ -62,13 +62,13 @@ class Connection(Session):
 
         try:
             self.vehicles()
-        except http.client.HTTPException as e:
+        except HTTPException as e:
             if e.args == (401, "Unauthorized"):
                 self.login(True)
 
     def login(self, unauthorized = False):
         if unauthorized:
-            self.conn.close()
+            self._httpconn.close()
             self.open()
 
         passwd = self._passwd
