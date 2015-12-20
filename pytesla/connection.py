@@ -52,6 +52,7 @@ class Connection(Session):
     def __init__(self, email, passwd):
         Session.__init__(self)
         self.load_state()
+        self._vehicles = {}
 
         self._email = email
         self._passwd = passwd
@@ -115,8 +116,7 @@ class Connection(Session):
             self.state['vehicles'] = d['response']
             self.save_state()
 
-        vehicles = {}
         for v in self.state['vehicles']:
-            vehicles[v['vin']] = vehicle.Vehicle(v['vin'], self, v)
+            self._vehicles[v['vin']] = vehicle.Vehicle(v['vin'], self, v)
 
-        return vehicles
+        return self._vehicles
