@@ -53,8 +53,8 @@ class Connection(Session):
         Session.__init__(self)
         self.load_state()
 
-        self.email = email
-        self.passwd = passwd
+        self._email = email
+        self._passwd = passwd
 
         if not 'access_token' in self.state:
             self.login()
@@ -70,11 +70,11 @@ class Connection(Session):
             self.conn.close()
             self.open()
 
-        passwd = self.passwd
+        passwd = self._passwd
         if type(passwd) != str:
             # We were not given a password as a string, assuming it's
             # a function that'll return the password.
-            passwd = self.passwd()
+            passwd = self._passwd()
 
         cred = {}
 
@@ -85,7 +85,7 @@ class Connection(Session):
                            {'grant_type': 'password',
                             'client_id': cred['client_id'],
                             'client_secret': cred['client_secret'],
-                            'email' : self.email,
+                            'email' : self._email,
                             'password' : passwd })
 
         if 'access_token' in r:
