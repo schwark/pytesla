@@ -4,15 +4,10 @@ class CommandError(Exception):
 
 class Vehicle:
     def __init__(self, vin, conn, payload):
-        self._conn = conn
-        self._vin = vin
-        self._id = None
+        assert payload['vin'] == vin
 
-        assert payload['vin'] == self.vin
-        self._id = payload['id']
-        self._options = payload['option_codes'].split(',')
-        self._state = payload['state']
-        self._color = payload['color']
+        self._conn = conn
+        self._data = payload
 
     def __repr__(self):
         return "<Vehicle %s>" % self.vin
@@ -20,11 +15,15 @@ class Vehicle:
     # Helpers
     @property
     def vin(self):
-        return self._vin
+        return self._data['vin']
 
     @property
     def id(self):
-        return self._id
+        return self._data['id']
+
+    @property
+    def state(self):
+        return self._data['state']
 
     def _request(self, verb, command = False, **kwargs):
         action = 'data_request'
