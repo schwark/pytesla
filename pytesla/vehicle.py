@@ -3,7 +3,6 @@ class CommandError(Exception):
     pass
 
 class Vehicle:
-
     def __init__(self, vin, conn, payload):
         self._conn = conn
         self._vin = vin
@@ -15,6 +14,10 @@ class Vehicle:
         self._state = payload['state']
         self._color = payload['color']
 
+    def __repr__(self):
+        return "<Vehicle %s>" % self.vin
+
+    # Helpers
     @property
     def vin(self):
         return self._vin
@@ -23,6 +26,25 @@ class Vehicle:
     def id(self):
         return self._id
 
+    def _request(self, verb, command = False, **kwargs):
+        action = 'data_request'
+        post_data = None
+        if command:
+            action = 'command'
+            post_data = kwargs
+        elif kwargs:
+            raise Exception("kwargs given for non-command request.")
+
+        p = self._conn.read_json_path('/api/1/vehicles/{}/{}/{}' \
+                                      .format(self.id, action, verb),
+                                      post_data)
+        if command and not p['response']:
+            # Command returned failure, raise exception
+            raise CommandError(p['error'])
+
+        return p
+
+    # API getter properties
     @property
     def mobile_enabled(self):
         p = self._conn.read_json_path('/api/1/vehicles/{}/mobile_enabled' \
@@ -49,23 +71,7 @@ class Vehicle:
     def vehicle_state(self):
         return self._request('vehicle_state')
 
-    def _request(self, verb, command = False, **kwargs):
-        action = 'data_request'
-        post_data = None
-        if command:
-            action = 'command'
-            post_data = kwargs
-        elif kwargs:
-            raise Exception("kwargs given for non-command request.")
-
-        p = self._conn.read_json_path('/api/1/vehicles/{}/{}/{}' \
-                                      .format(self.id, action, verb),
-                                      post_data)
-        if command and not p['response']:
-            # Command returned failure, raise exception
-            raise CommandError(p['error'])
-        return p
-
+    # API commands
     def door_lock(self):
         return self._request('door_lock', command = True)
 
@@ -121,6 +127,3 @@ class Vehicle:
     def wake_up(self):
         return self._conn.read_json_path('/api/1/vehicles/{}/wake_up' \
                                          .format(self.id), {})
-
-    def __repr__(self):
-        return "<Vehicle %s>" % self.vin
