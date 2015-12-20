@@ -10,7 +10,7 @@ class Vehicle:
         self._data = payload
 
     def __repr__(self):
-        return "<Vehicle %s>" % self.vin
+        return "<Vehicle {}>".format(self.vin)
 
     # Helpers
     @property
@@ -46,29 +46,28 @@ class Vehicle:
     # API getter properties
     @property
     def mobile_enabled(self):
-        p = self._conn.read_json_path('/api/1/vehicles/{}/mobile_enabled' \
-                                      .format(self.id))
-        return p['response']
+        return self._conn.read_json_path('/api/1/vehicles/{}/mobile_enabled' \
+                                         .format(self.id))['response']
 
     @property
     def charge_state(self):
-        return self._request('charge_state')
+        return self._request('charge_state')['response']
 
     @property
     def climate_state(self):
-        return self._request('climate_state')
+        return self._request('climate_state')['response']
 
     @property
     def drive_state(self):
-        return self._request('drive_state')
+        return self._request('drive_state')['response']
 
     @property
     def gui_settings(self):
-        return self._request('gui_settings')
+        return self._request('gui_settings')['response']
 
     @property
     def vehicle_state(self):
-        return self._request('vehicle_state')
+        return self._request('vehicle_state')['response']
 
     # API commands
     def door_lock(self):
@@ -125,11 +124,11 @@ class Vehicle:
 
     def wake_up(self):
         d = self._conn.read_json_path('/api/1/vehicles/{}/wake_up' \
-                                      .format(self.id), {})
+                                      .format(self.id), {})['response']
 
         # Update vehicle tokens if they're different from our cached
         # ones.
-        tokens = d['response']['tokens']
+        tokens = d['tokens']
 
         if tokens != self._data['tokens']:
             self._data['tokens'] = tokens
