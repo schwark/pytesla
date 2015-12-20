@@ -52,16 +52,14 @@ class Vehicle:
     def _request(self, verb, command = False, **kwargs):
         action = 'data_request'
         post_data = None
-        get = ''
-        if kwargs:
-            get = '?' + urllib.urlencode(kwargs)
-
         if command:
             action = 'command'
             post_data = kwargs
+        elif kwargs:
+            raise Exception("kwargs given for non-command request.")
 
-        p = self._conn.read_json_path('api/1/vehicles/{}/{}/{}{}' \
-                                      .format(self.id, action, verb, get),
+        p = self._conn.read_json_path('/api/1/vehicles/{}/{}/{}' \
+                                      .format(self.id, action, verb),
                                       post_data)
         if command and not p['response']:
             # Command returned failure, raise exception
