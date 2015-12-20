@@ -1,3 +1,5 @@
+from . import stream
+
 class CommandError(Exception):
     """Tesla Model S vehicle command returned failure"""
     pass
@@ -22,8 +24,26 @@ class Vehicle:
         return self._data['id']
 
     @property
+    def vehicle_id(self):
+        return self._data['vehicle_id']
+
+    @property
     def state(self):
         return self._data['state']
+
+    @property
+    def email(self):
+        return self._conn._email
+
+    @property
+    def stream_auth_token(self):
+        return self._data['tokens'][0]
+
+    def stream(self, events):
+        return stream.Stream(self, events)
+
+    def refresh(self):
+        self._conn.vehicles(True)
 
     def _request(self, verb, command = False, **kwargs):
         action = 'data_request'

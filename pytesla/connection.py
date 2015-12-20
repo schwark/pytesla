@@ -110,13 +110,18 @@ class Connection(Session):
     def vehicle(self, vin):
         return self.vehicles()[vin]
 
-    def vehicles(self):
-        if not 'vehicles' in self.state:
+    def vehicles(self, refresh = False):
+        if refresh or not 'vehicles' in self.state:
             d = self.read_json_path('/api/1/vehicles')
             self.state['vehicles'] = d['response']
             self.save_state()
 
         for v in self.state['vehicles']:
-            self._vehicles[v['vin']] = vehicle.Vehicle(v['vin'], self, v)
+            vin = v['vin']
+
+            if vin in self._vehicles:
+                self._vehicles[vin]._data = v
+            else:
+                self._vehicles[vin] = vehicle.Vehicle(vin, self, v)
 
         return self._vehicles

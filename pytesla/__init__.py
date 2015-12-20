@@ -8,3 +8,6 @@ CommandError = vehicle.CommandError
 
 from . import connection
 Connection = connection.Connection
+
+from . import stream
+StreamEvents = stream.StreamEvents
