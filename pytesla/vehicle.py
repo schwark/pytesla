@@ -124,5 +124,15 @@ class Vehicle:
         raise ValueError("Invalid sunroof state")
 
     def wake_up(self):
-        return self._conn.read_json_path('/api/1/vehicles/{}/wake_up' \
-                                         .format(self.id), {})
+        d = self._conn.read_json_path('/api/1/vehicles/{}/wake_up' \
+                                      .format(self.id), {})
+
+        # Update vehicle tokens if they're different from our cached
+        # ones.
+        tokens = d['response']['tokens']
+
+        if tokens != self._data['tokens']:
+            self._data['tokens'] = tokens
+            self._conn.save_state()
+
+        return d
