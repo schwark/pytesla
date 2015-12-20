@@ -67,7 +67,7 @@ class Vehicle:
                                       post_data)
         if command and not p['response']:
             # Command returned failure, raise exception
-            raise CommandError(p['reason'])
+            raise CommandError(p['error'])
         return p
 
     def door_lock(self):
