@@ -1,7 +1,7 @@
 import json
 import urllib
-import httplib
-from vehicle import Vehicle
+import http.client
+from . import vehicle
 import os
 
 class Session:
@@ -9,7 +9,7 @@ class Session:
         self.open()
 
     def open(self):
-        self.conn = httplib.HTTPSConnection('owner-api.teslamotors.com')
+        self.conn = http.client.HTTPSConnection('owner-api.teslamotors.com')
 
     def read_url(self, url, post_data = None):
         """
@@ -23,7 +23,7 @@ class Session:
                                        .format(str(self.state['access_token']))
 
         if post_data.__class__ == dict:
-            post = urllib.urlencode(post_data)
+            post = urllib.parse.urlencode(post_data)
         else:
             post = post_data
 
@@ -36,13 +36,13 @@ class Session:
             del self.state['access_token']
 
         if response.status != 200:
-            raise httplib.HTTPException(response.status, response.reason)
+            raise http.client.HTTPException(response.status, response.reason)
 
         return response
 
     def read_json(self, url, post_data = None):
         f = self.read_url(url, post_data)
-        data = f.read()
+        data = f.read().decode('utf-8')
         f.close()
         return json.loads(data)
 
@@ -61,7 +61,7 @@ class Connection(Session):
 
         try:
             self.vehicles()
-        except httplib.HTTPException, e:
+        except http.client.HTTPException as e:
             if e.args == (401, "Unauthorized"):
                 self.login(True)
 
@@ -117,6 +117,6 @@ class Connection(Session):
 
         vehicles = {}
         for v in self.state['vehicles']:
-            vehicles[v['vin']] = Vehicle(v['vin'], self, v)
+            vehicles[v['vin']] = vehicle.Vehicle(v['vin'], self, v)
 
         return vehicles
