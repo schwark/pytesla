@@ -17,15 +17,14 @@ class StreamEvents:
     ALL              = 'speed,odometer,soc,elevation,est_heading,est_lat,est_lng,power,shift_state'
 
 class Stream:
-    def __init__(self, vehicle, events):
+    def __init__(self, vehicle):
         self._vehicle = vehicle
         self._request = None
-        self._events = events
 
     def __repr__(self):
         return "<Stream {}>".format(str(self._vehicle))
 
-    def connect(self):
+    def connect(self, events):
         n = 0
 
         while (n < 2):
@@ -34,7 +33,7 @@ class Stream:
             token = self._vehicle.stream_auth_token
             auth_str = "{}:{}".format(self._vehicle.email, token)
             auth = base64.b64encode(bytes(auth_str, 'utf-8')).decode('utf-8')
-            params = "?values=" + ','.join(self._events)
+            params = "?values=" + ','.join(events)
 
             url ='https://streaming.vn.teslamotors.com/stream/{}/{}' \
                 .format(self._vehicle.vehicle_id, params)
@@ -57,8 +56,8 @@ class Stream:
     def close(self):
         self._request = None
 
-    def events(self, count = 0):
-        with self.connect() as response:
+    def read_stream(self, events, count):
+        with self.connect(events) as response:
             n = 0
             for line in response:
                 yield (line.decode('utf-8').strip().split(','), self)

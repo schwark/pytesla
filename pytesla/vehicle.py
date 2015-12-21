@@ -39,8 +39,9 @@ class Vehicle:
     def stream_auth_token(self):
         return self._data['tokens'][0]
 
-    def stream(self, events):
-        return stream.Stream(self, events)
+    def stream(self, events, count = 0):
+        s = stream.Stream(self)
+        return s.read_stream(events, count)
 
     def refresh(self):
         self._conn.vehicles(True)
