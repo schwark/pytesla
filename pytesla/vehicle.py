@@ -39,6 +39,13 @@ class Vehicle:
     def stream_auth_token(self):
         return self._data['tokens'][0]
 
+    # Stream entry generator for events defined in StreamEvents
+    # (events should be an array of StreamEvents). This generator
+    # generates tuples of an array of the requested events (preceded
+    # by a timestamp) and a reference to the stream itself (which can
+    # be closed to stop receiving events). This generator will
+    # generate count number of events, or as many as it gets if count
+    # is 0.
     def stream(self, events, count = 0):
         s = stream.Stream(self)
         return s.read_stream(events, count)
