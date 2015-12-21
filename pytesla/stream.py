@@ -20,7 +20,6 @@ class Stream:
     def __init__(self, vehicle, events):
         self._vehicle = vehicle
         self._request = None
-        self._response = None
         self._events = events
 
     def __repr__(self):
