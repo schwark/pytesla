@@ -42,11 +42,11 @@ class Session:
                                url, post, headers)
         response = self._httpconn.getresponse()
 
-        if response.status == 401 and response.reason == "Unauthorized" \
-           and 'access_token' in self.state:
-            del self.state['access_token']
-
         if response.status != 200:
+            if response.status == 401 and response.reason == "Unauthorized" \
+               and 'access_token' in self.state:
+                del self.state['access_token']
+
             # Make sure we read the response body, or we won't be able to
             # re-use the connection for following request.
             response.read()
