@@ -57,15 +57,33 @@ class Stream:
         self._request = None
 
     def read_stream(self, events, count):
-        with self.connect(events) as response:
+        total = 0
+        iter_count = 0
+
+        while True:
             n = 0
-            for line in response:
-                yield (line.decode('utf-8').strip().split(','), self)
 
-                n += 1
+            iter_count += 1
 
-                if count != 0 and n >= count:
-                    break
+            with self.connect(events) as response:
+                for line in response:
+                    yield (line.decode('utf-8').strip().split(','), self)
 
-                if not self._request:
-                    break
+                    n += 1
+                    total += 1
+
+                    if count != 0 and total >= count or not self._request:
+                        break
+
+            # If we were closed, stop
+            if not self._request:
+                break
+
+            # If the car isn't being driven the streaming server just
+            # sends one event and then times out. In that case, stop.
+            if n <= 1:
+                break
+
+            # If we got as many or more events than we asked for, stop.
+            if count != 0 and total >= count:
+                break
