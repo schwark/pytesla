@@ -16,6 +16,7 @@ class Session:
             log = NoOpLogger()
 
         self._log = log
+        self._in_reauthorization_attempt = False
 
         self.open()
 
@@ -44,13 +45,31 @@ class Session:
         response = self._httpconn.getresponse()
 
         if response.status != 200:
-            if response.status == 401 and response.reason == "Unauthorized" \
-               and 'access_token' in self.state:
-                del self.state['access_token']
-
             # Make sure we read the response body, or we won't be able to
             # re-use the connection for following request.
             response.read()
+
+            if response.status == 401 and response.reason == "Unauthorized":
+                if 'access_token' in self.state:
+                    del self.state['access_token']
+                    self.save_state()
+
+                if not self._in_reauthorization_attempt:
+                    try:
+                        self._in_reauthorization_attempt = True
+                        ok = self.login(True)
+                        self._in_reauthorization_attempt = False
+
+                        if not ok:
+                            raise Exception("Authorization failed.")
+
+                        # Retry the request
+                        return self.request(path, post_data)
+                    except Exception as e:
+                        self._in_reauthorization_attempt = False
+
+                        self._log.write("Re-authorization failed: {}" \
+                                        .format(str(e)))
 
             raise HTTPException(response.status, response.reason)
 
@@ -76,12 +95,6 @@ class Connection(Session):
         if not 'access_token' in self.state:
             self.login()
 
-        try:
-            self.vehicles()
-        except HTTPException as e:
-            if e.args == (401, "Unauthorized"):
-                self.login(True)
-
     def login(self, unauthorized = False):
         if unauthorized:
             self._httpconn.close()
@@ -98,17 +111,24 @@ class Connection(Session):
         with open(os.path.expanduser("~/.pytesla"), "r") as f:
             cred = json.load(f)
 
-        r = self.read_json('/oauth/token',
-                           {'grant_type': 'password',
-                            'client_id': cred['client_id'],
-                            'client_secret': cred['client_secret'],
-                            'email' : self._email,
-                            'password' : passwd })
+        r = {}
+        try:
+            r = self.read_json('/oauth/token',
+                               {'grant_type': 'password',
+                                'client_id': cred['client_id'],
+                                'client_secret': cred['client_secret'],
+                                'email' : self._email,
+                                'password' : passwd })
+        except Exception as e:
+            self._log.write("Authorization failed: {}".format(str(e)))
 
-        if 'access_token' in r:
-            self.state['access_token'] = r['access_token']
+        if not 'access_token' in r:
+            return False
 
-            self.save_state()
+        self.state['access_token'] = r['access_token']
+        self.save_state()
+
+        return True
 
     def load_state(self):
         self.state = {}
