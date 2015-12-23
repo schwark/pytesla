@@ -5,11 +5,12 @@ class CommandError(Exception):
     pass
 
 class Vehicle:
-    def __init__(self, vin, conn, payload):
+    def __init__(self, vin, conn, payload, log):
         assert payload['vin'] == vin
 
         self._conn = conn
         self._data = payload
+        self._log = log
 
     def __repr__(self):
         return "<Vehicle {}>".format(self.vin)

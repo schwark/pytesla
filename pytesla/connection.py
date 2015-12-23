@@ -4,8 +4,19 @@ from http.client import HTTPSConnection, HTTPException
 from . import vehicle
 import os
 
+class NoOpLogger:
+    def write(self, str):
+        pass
+    def debug(self, str):
+        pass
+
 class Session:
-    def __init__(self):
+    def __init__(self, log):
+        if log == None:
+            log = NoOpLogger()
+
+        self._log = log
+
         self.open()
 
     def open(self):
@@ -49,8 +60,8 @@ class Session:
 _STATE_PATH = os.path.expanduser("~/.tesla-session")
 
 class Connection(Session):
-    def __init__(self, email, passwd):
-        Session.__init__(self)
+    def __init__(self, email, passwd, log = None):
+        Session.__init__(self, log)
         self.load_state()
         self._vehicles = {}
 
@@ -122,6 +133,6 @@ class Connection(Session):
             if vin in self._vehicles:
                 self._vehicles[vin]._data = v
             else:
-                self._vehicles[vin] = vehicle.Vehicle(vin, self, v)
+                self._vehicles[vin] = vehicle.Vehicle(vin, self, v, self._log)
 
         return self._vehicles

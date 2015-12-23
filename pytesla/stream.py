@@ -20,15 +20,19 @@ class Stream:
     def __init__(self, vehicle):
         self._vehicle = vehicle
         self._request = None
+        self._log = vehicle._log
 
     def __repr__(self):
         return "<Stream {}>".format(str(self._vehicle))
 
     def connect(self, events):
+        self._log.debug("Stream connect")
         n = 0
 
         while (n < 2):
             n += 1
+
+            self._log.debug("Stream connect iteration {}".format(n))
 
             token = self._vehicle.stream_auth_token
             auth_str = "{}:{}".format(self._vehicle.email, token)
@@ -45,11 +49,14 @@ class Stream:
                 response = urllib.request.urlopen(self._request)
             except urllib.error.HTTPError as e:
                 if e.code == 401 and e.reason == "provide valid authentication":
+                    self._log.debug("Authentication error, retrying")
                     self._vehicle.refresh()
 
                     continue
 
                 raise e
+
+            self._log.debug("Stream connection established")
 
             return response
 
@@ -57,6 +64,7 @@ class Stream:
         self._request = None
 
     def read_stream(self, events, count):
+        self._log.debug("In read_stream(count = {})".format(count))
         total = 0
         iter_count = 0
 
@@ -65,25 +73,35 @@ class Stream:
 
             iter_count += 1
 
+            self._log.debug("In read_stream(), iteration {}".format(iter_count))
+
             with self.connect(events) as response:
+                self._log.debug("In read_stream(), connected")
                 for line in response:
                     yield (line.decode('utf-8').strip().split(','), self)
 
                     n += 1
                     total += 1
 
+                    self._log.debug("In read_stream(), n = {}, total = {}" \
+                                   .format(n, total))
+
                     if count != 0 and total >= count or not self._request:
+                        self._log.debug("In read_stream(), inner break")
                         break
 
             # If we were closed, stop
             if not self._request:
+                self._log.debug("In read_stream(), closed")
                 break
 
             # If the car isn't being driven the streaming server just
             # sends one event and then times out. In that case, stop.
             if n <= 1:
+                self._log.debug("In read_stream(), n <= 1")
                 break
 
             # If we got as many or more events than we asked for, stop.
             if count != 0 and total >= count:
+                self._log.debug("In read_stream(), done")
                 break
