@@ -22,9 +22,10 @@ class Session:
     def open(self):
         self._httpconn = HTTPSConnection('owner-api.teslamotors.com')
 
-    def read_url(self, url, post_data = None):
+    def request(self, path, post_data = None):
         """
-        Gets the url URL. Posts post_data.
+        Send a request for the path 'path'. Does a POST of post_data if given,
+        else a GET of the given path.
         """
 
         headers = {}
@@ -39,7 +40,7 @@ class Session:
             post = post_data
 
         self._httpconn.request("GET" if post is None else "POST",
-                               url, post, headers)
+                               path, post, headers)
         response = self._httpconn.getresponse()
 
         if response.status != 200:
@@ -55,10 +56,10 @@ class Session:
 
         return response
 
-    def read_json(self, url, post_data = None):
-        f = self.read_url(url, post_data)
-        data = f.read().decode('utf-8')
-        f.close()
+    def read_json(self, path, post_data = None):
+        r = self.request(path, post_data)
+        data = r.read().decode('utf-8')
+        r.close()
         return json.loads(data)
 
 _STATE_PATH = os.path.expanduser("~/.tesla-session")
