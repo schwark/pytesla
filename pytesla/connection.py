@@ -71,6 +71,9 @@ class Session:
                         self._log.write("Re-authorization failed: {}" \
                                         .format(str(e)))
 
+            self._log.write("{} request failed: {}: {}" \
+                            .format(path, response.status, response.reason))
+
             raise HTTPException(response.status, response.reason)
 
         return response
