@@ -47,6 +47,10 @@ class Session:
             del self.state['access_token']
 
         if response.status != 200:
+            # Make sure we read the response body, or we won't be able to
+            # re-use the connection for following request.
+            response.read()
+
             raise HTTPException(response.status, response.reason)
 
         return response
