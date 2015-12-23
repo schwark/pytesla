@@ -33,7 +33,7 @@ class Session:
             headers['Authorization'] = 'Bearer {}' \
                                        .format(str(self.state['access_token']))
 
-        if post_data.__class__ == dict:
+        if type(post_data) == dict:
             post = urllib.parse.urlencode(post_data)
         else:
             post = post_data
