@@ -63,9 +63,9 @@ class Vehicle:
         elif kwargs:
             raise Exception("kwargs given for non-command request.")
 
-        p = self._conn.read_json_path('/api/1/vehicles/{}/{}/{}' \
-                                      .format(self.id, action, verb),
-                                      post_data)
+        p = self._conn.read_json('/api/1/vehicles/{}/{}/{}' \
+                                 .format(self.id, action, verb),
+                                 post_data)
         if command and not p['response']:
             # Command returned failure, raise exception
             raise CommandError(p['error'])
@@ -75,8 +75,8 @@ class Vehicle:
     # API getter properties
     @property
     def mobile_enabled(self):
-        return self._conn.read_json_path('/api/1/vehicles/{}/mobile_enabled' \
-                                         .format(self.id))['response']
+        return self._conn.read_json('/api/1/vehicles/{}/mobile_enabled' \
+                                    .format(self.id))['response']
 
     @property
     def charge_state(self):
@@ -152,8 +152,8 @@ class Vehicle:
         raise ValueError("Invalid sunroof state")
 
     def wake_up(self):
-        d = self._conn.read_json_path('/api/1/vehicles/{}/wake_up' \
-                                      .format(self.id), {})['response']
+        d = self._conn.read_json('/api/1/vehicles/{}/wake_up' \
+                                 .format(self.id), {})['response']
 
         # Update vehicle tokens if they're different from our cached
         # ones.

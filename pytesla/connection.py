@@ -119,15 +119,12 @@ class Connection(Session):
         with open(_STATE_PATH, 'w') as f:
             json.dump(self.state, f, indent=4)
 
-    def read_json_path(self, path, post_data = None):
-        return Session.read_json(self, path, post_data)
-
     def vehicle(self, vin):
         return self.vehicles()[vin]
 
     def vehicles(self, refresh = False):
         if refresh or not 'vehicles' in self.state:
-            d = self.read_json_path('/api/1/vehicles')
+            d = self.read_json('/api/1/vehicles')
             self.state['vehicles'] = d['response']
             self.save_state()
 
