@@ -18,10 +18,10 @@ Usage
     >>> mycar = pytesla.Connection('myemail', 'mypassword').vehicle('myvin')
     >>> mycar.honk_horn()
     True
-    >>> for e in mycar.stream([StreamEvents.ALL], 2):
-    >>>    print(e)
-    (['1450666313710', '0', '1868.8', '71', '15', '48', 'xxx.yyy', 'xxx.yyy', '1', 'P'], <Stream <Vehicle xxx>>)
-    (['1450666315459', '0', '1868.8', '71', '15', '48', 'xxx.yyy', 'xxx.yyy', '2', 'P'], <Stream <Vehicle xxx>>)
+    >>> for e in mycar.stream(StreamEvents.ALL, 2):
+    >>>    print(str(e[0]))
+    {'shift_state': 'P', 'elevation': '28', 'soc': '83', 'est_heading': '128', 'est_lat': 'xxx.yyy', 'timestamp': '1450666313710', 'power': '0', 'odometer': '1868.8', 'speed': '', 'est_lng': 'xxx.yyy'}
+    {'shift_state': 'D', 'elevation': '28', 'soc': '83', 'est_heading': '128', 'est_lat': 'xxx.yyy', 'timestamp': '1450666315459', 'power': '21', 'odometer': '1868.8', 'speed': '43', 'est_lng': 'xxx.yyy'}
 
 Installation
 ============

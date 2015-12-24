@@ -14,7 +14,9 @@ class StreamEvents:
     LONGITUDE        = 'est_lng'
     POWER            = 'power'
     SHIFT_STATE      = 'shift_state'
-    ALL              = 'speed,odometer,soc,elevation,est_heading,est_lat,est_lng,power,shift_state'
+    ALL              = ['speed', 'odometer', 'soc', 'elevation',
+                        'est_heading', 'est_lat', 'est_lng', 'power',
+                        'shift_state']
 
 class Stream:
     def __init__(self, vehicle):
@@ -78,7 +80,12 @@ class Stream:
             with self.connect(events) as response:
                 self._log.debug("In read_stream(), connected")
                 for line in response:
-                    yield (line.decode('utf-8').strip().split(','), self)
+                    data = line.decode('utf-8').strip().split(',')
+                    event = {'timestamp': data[0]}
+                    for i in range(0, len(events)):
+                        event[events[i]] = data[i + 1]
+
+                    yield (event, self)
 
                     n += 1
                     total += 1
