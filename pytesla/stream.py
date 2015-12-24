@@ -5,15 +5,15 @@ import base64
 #http.client.HTTPConnection.debuglevel = 1
 
 class StreamEvents:
-    SPEED            = 'speed'
-    ODOMETER         = 'odometer'
-    STATE_OF_CHARGE  = 'soc'
-    ELEVATION        = 'elevation'
-    HEADING          = 'est_heading'
-    LATITUDE         = 'est_lat'
-    LONGITUDE        = 'est_lng'
-    POWER            = 'power'
-    SHIFT_STATE      = 'shift_state'
+    SPEED            = 'speed'         # int, or str if shift_state is ''
+    ODOMETER         = 'odometer'      # float
+    STATE_OF_CHARGE  = 'soc'           # int
+    ELEVATION        = 'elevation'     # int
+    HEADING          = 'est_heading'   # int
+    LATITUDE         = 'est_lat'       # float
+    LONGITUDE        = 'est_lng'       # float
+    POWER            = 'power'         # int
+    SHIFT_STATE      = 'shift_state'   # str
     ALL              = ['speed', 'odometer', 'soc', 'elevation',
                         'est_heading', 'est_lat', 'est_lng', 'power',
                         'shift_state']
