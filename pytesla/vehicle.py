@@ -48,29 +48,23 @@ class Vehicle:
     # generate count number of events, or as many as it gets if count
     # is 0.
     def stream(self, events, count = 0):
-        s = stream.Stream(self)
-        return s.read_stream(events, count)
+        return stream.Stream(self).read_stream(events, count)
 
     def refresh(self):
         self._conn.vehicles(True)
 
-    def _request(self, verb, command = False, **kwargs):
-        action = 'data_request'
-        post_data = None
-        if command:
-            action = 'command'
-            post_data = kwargs
-        elif kwargs:
-            raise Exception("kwargs given for non-command request.")
+    def request(self, verb):
+        return self._conn.read_json('/api/1/vehicles/{}/data_request/{}' \
+                                    .format(self.id, verb))['response']
 
-        p = self._conn.read_json('/api/1/vehicles/{}/{}/{}' \
-                                 .format(self.id, action, verb),
-                                 post_data)
-        if command and not p['response']:
+    def command(self, verb, **kwargs):
+        p = self._conn.read_json('/api/1/vehicles/{}/command/{}' \
+                                 .format(self.id, verb), kwargs)
+        if 'response' not in p or not p['response']:
             # Command returned failure, raise exception
             raise CommandError(p['error'])
 
-        return p
+        return p['response']
 
     # API getter properties
     @property
@@ -80,74 +74,73 @@ class Vehicle:
 
     @property
     def charge_state(self):
-        return self._request('charge_state')['response']
+        return self.request('charge_state')
 
     @property
     def climate_state(self):
-        return self._request('climate_state')['response']
+        return self.request('climate_state')
 
     @property
     def drive_state(self):
-        return self._request('drive_state')['response']
+        return self.request('drive_state')
 
     @property
     def gui_settings(self):
-        return self._request('gui_settings')['response']
+        return self.request('gui_settings')
 
     @property
     def vehicle_state(self):
-        return self._request('vehicle_state')['response']
+        return self.request('vehicle_state')
 
     # API commands
     def door_lock(self):
-        return self._request('door_lock', command = True)
+        return self.command('door_lock')
 
     def door_unlock(self):
-        return self._request('door_unlock', command = True)
+        return self.command('door_unlock')
 
     def charge_port_door_open(self):
-        return self._request('charge_port_door_open', command = True)
+        return self.command('charge_port_door_open')
 
     def charge_standard(self):
-        return self._request('charge_standard', command = True)
+        return self.command('charge_standard')
 
     def charge_max_range(self):
-        return self._request('charge_max_range', command = True)
+        return self.command('charge_max_range')
 
     def charge_start(self):
-        return self._request('charge_start', command = True)
+        return self.command('charge_start')
 
     def charge_stop(self):
-        return self._request('charge_stop', command = True)
+        return self.command('charge_stop')
 
     def set_charge_limit(self, limit):
-        return self._request('set_charge_limit', command = True,
-                             percent = limit)
+        self.command('set_charge_limit', percent = limit)
 
     def flash_lights(self):
-        return self._request('flash_lights', command = True)
+        return self.command('flash_lights')
 
     def honk_horn(self):
-        return self._request('honk_horn', command = True)
+        return self.command('honk_horn')
 
     def set_temps(self, driver, passenger):
-        return self._request('set_temps', command = True, driver_temp = driver,
-                             passenger_temp = passenger)
+        return self.command('set_temps', driver_temp = driver,
+                            passenger_temp = passenger)
 
     def auto_conditioning_start(self):
-        return self._request('auto_conditioning_start', command = True)
+        return self.command('auto_conditioning_start')
 
     def auto_conditioning_stop(self):
-        return self._request('auto_conditioning_stop', command = True)
+        return self.command('auto_conditioning_stop')
 
     def sun_roof_control(self, state, percent = None):
-        if state == 'move' and percent:
-            return self._request('sun_roof_control', command = True,
-                                 state = state, percent = percent)
+        args = {'state': state}
 
-        if state in ('open', 'close', 'comfort', 'vent'):
-            return self._request('sun_roof_control', command = True,
-                                 state = state)
+        if state == 'move' and percent != None:
+            args['percent'] = percent
+
+        if state in ('open', 'close', 'move', 'comfort', 'vent'):
+            return self.command('sun_roof_control', **args)
 
         raise ValueError("Invalid sunroof state")
 
