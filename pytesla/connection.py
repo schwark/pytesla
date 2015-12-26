@@ -99,7 +99,7 @@ class Connection(Session):
         self._email = email
         self._passwd = passwd
 
-        if not 'access_token' in self.state:
+        if 'access_token' not in self.state:
             self.login()
 
     def login(self, unauthorized = False):
@@ -129,7 +129,7 @@ class Connection(Session):
         except Exception as e:
             self._log.write("Authorization failed: {}".format(str(e)))
 
-        if not 'access_token' in r:
+        if 'access_token' not in r:
             return False
 
         self.state['access_token'] = r['access_token']
@@ -151,7 +151,7 @@ class Connection(Session):
         return self.vehicles()[vin]
 
     def vehicles(self, refresh = False):
-        if refresh or not 'vehicles' in self.state:
+        if refresh or 'vehicles' not in self.state:
             d = self.read_json('/api/1/vehicles')
             self.state['vehicles'] = d['response']
             self.save_state()
