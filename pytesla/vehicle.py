@@ -114,7 +114,12 @@ class Vehicle:
     def charge_stop(self):
         return self.command('charge_stop')
 
-    def set_charge_limit(self, limit):
+    @property
+    def charge_limit(self):
+        return self.charge_state['charge_limit_soc']
+
+    @charge_limit.setter
+    def charge_limit(self, limit):
         self.command('set_charge_limit', percent = limit)
 
     def flash_lights(self):
