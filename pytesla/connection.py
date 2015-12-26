@@ -22,6 +22,7 @@ class Session:
 
     def open(self):
         self._httpconn = HTTPSConnection('owner-api.teslamotors.com')
+        #self._httpconn.set_debuglevel(5)
 
     def request(self, path, post_data = None):
         """
@@ -55,21 +56,26 @@ class Session:
                     self.save_state()
 
                 if not self._in_reauthorization_attempt:
+                    ok = False
+
                     try:
                         self._in_reauthorization_attempt = True
                         ok = self.login(True)
                         self._in_reauthorization_attempt = False
-
-                        if not ok:
-                            raise Exception("Authorization failed.")
-
-                        # Retry the request
-                        return self.request(path, post_data)
                     except Exception as e:
                         self._in_reauthorization_attempt = False
 
                         self._log.write("Re-authorization failed: {}" \
                                         .format(str(e)))
+
+                        raise e
+
+                    if not ok:
+                        raise Exception("Authorization failed.")
+
+                    # Authentication successfull, return the request
+                    return self.request(path, post_data)
+
 
             self._log.write("{} request failed: {}: {}" \
                             .format(path, response.status, response.reason))
