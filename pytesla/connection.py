@@ -85,10 +85,8 @@ class Session:
         return response
 
     def read_json(self, path, post_data = None):
-        r = self.request(path, post_data)
-        data = r.read().decode('utf-8')
-        r.close()
-        return json.loads(data)
+        with self.request(path, post_data) as r:
+            return json.loads(r.read().decode('utf-8'))
 
 _STATE_PATH = os.path.expanduser("~/.tesla-session")
 
