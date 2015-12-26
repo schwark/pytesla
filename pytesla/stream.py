@@ -36,14 +36,15 @@ class Stream:
 
             self._log.debug("Stream connect iteration {}".format(n))
 
-            token = self._vehicle.stream_auth_token
-            auth_str = "{}:{}".format(self._vehicle.email, token)
+            auth_str = "{}:{}".format(self._vehicle.email,
+                                      self._vehicle.stream_auth_token)
             auth = base64.b64encode(bytes(auth_str, 'utf-8')).decode('utf-8')
+
             params = "?values=" + ','.join(events)
 
             url ='https://streaming.vn.teslamotors.com/stream/{}/{}' \
                 .format(self._vehicle.vehicle_id, params)
-            headers = {'Authorization': 'Basic {}'.format(auth)}
+            headers = {'Authorization': 'Basic ' + auth}
 
             self._request = urllib.request.Request(url, headers = headers)
 
@@ -52,6 +53,9 @@ class Stream:
             except urllib.error.HTTPError as e:
                 if e.code == 401 and e.reason == "provide valid authentication":
                     self._log.debug("Authentication error, retrying")
+
+                    # Refresh our vehicles list to ensure we have an
+                    # up-to-date token.
                     self._vehicle.refresh()
 
                     continue
