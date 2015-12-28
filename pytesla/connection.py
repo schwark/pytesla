@@ -61,21 +61,20 @@ class Session:
                     try:
                         self._in_reauthorization_attempt = True
                         ok = self.login(True)
-                        self._in_reauthorization_attempt = False
                     except Exception as e:
-                        self._in_reauthorization_attempt = False
-
                         self._log.write("Re-authorization failed: {}" \
                                         .format(str(e)))
 
                         raise e
+                    finally:
+                        self._in_reauthorization_attempt = False
+
 
                     if not ok:
                         raise Exception("Authorization failed.")
 
                     # Authentication successfull, return the request
                     return self.request(path, post_data)
-
 
             self._log.write("{} request failed: {}: {}" \
                             .format(path, response.status, response.reason))
