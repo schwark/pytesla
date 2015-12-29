@@ -1,4 +1,5 @@
 import urllib.request
+import contextlib
 import base64
 
 #import http.client
@@ -81,7 +82,7 @@ class Stream:
 
             self._log.debug("In read_stream(), iteration {}".format(iter_count))
 
-            with self.connect(events) as response:
+            with contextlib.closing(self.connect(events)) as response:
                 self._log.debug("In read_stream(), connected")
                 for line in response:
                     data = line.decode('utf-8').strip().split(',')
