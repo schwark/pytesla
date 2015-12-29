@@ -17,18 +17,28 @@ class Session:
 
         self._log = log
         self._in_reauthorization_attempt = False
-
-        self.open()
+        self._is_open = False
 
     def open(self):
         self._httpconn = HTTPSConnection('owner-api.teslamotors.com')
         #self._httpconn.set_debuglevel(5)
+
+        self._is_open = True
+
+    def close(self):
+        if self._is_open:
+            self._httpconn.close()
+
+            self._is_open = False
 
     def request(self, path, post_data = None):
         """
         Send a request for the path 'path'. Does a POST of post_data if given,
         else a GET of the given path.
         """
+
+        if not self._is_open:
+            self.open()
 
         headers = {}
 
@@ -103,7 +113,7 @@ class Connection(Session):
 
     def login(self, unauthorized = False):
         if unauthorized:
-            self._httpconn.close()
+            self.close()
             self.open()
 
         passwd = self._passwd
