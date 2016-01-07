@@ -96,7 +96,7 @@ class Stream:
                     total += 1
 
                     self._log.debug("In read_stream(), n = {}, total = {}" \
-                                   .format(n, total))
+                                    .format(n, total))
 
                     if count != 0 and total >= count or not self._request:
                         self._log.debug("In read_stream(), inner break")
