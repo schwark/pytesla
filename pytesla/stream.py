@@ -51,6 +51,13 @@ class Stream:
 
             try:
                 response = urllib.request.urlopen(self._request)
+
+                if not response:
+                    raise Exception("Connection failed, no response returned.")
+
+                self._log.debug("Stream connection established")
+
+                return response
             except urllib.error.HTTPError as e:
                 if e.code == 401 and e.reason == "provide valid authentication":
                     self._log.debug("Authentication error, retrying")
@@ -63,9 +70,7 @@ class Stream:
 
                 raise e
 
-            self._log.debug("Stream connection established")
-
-            return response
+        raise Exception("Stream connection failed.")
 
     def close(self):
         self._request = None
