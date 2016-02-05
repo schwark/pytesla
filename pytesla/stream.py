@@ -59,7 +59,9 @@ class Stream:
 
                 return response
             except urllib.error.HTTPError as e:
-                if e.code == 401 and e.reason == "provide valid authentication":
+                if e.code == 401 and \
+                   e.reason in ["provide valid authentication",
+                                "Unauthorized"]:
                     self._log.debug("Authentication error, retrying")
 
                     # Refresh our vehicles list to ensure we have an
