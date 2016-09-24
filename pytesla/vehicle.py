@@ -60,6 +60,14 @@ class Vehicle:
     def command(self, verb, **kwargs):
         p = self._conn.read_json('/api/1/vehicles/{}/command/{}' \
                                  .format(self.id, verb), kwargs)
+
+        args = []
+        for a in kwargs:
+            args.append("{} = {}".format(a, kwargs[a]))
+
+        self._log.write("{}({}) called. Result was {}" \
+                        .format(verb, ", ".join(args), p))
+
         if 'response' not in p or not p['response']:
             # Command returned failure, raise exception
             raise CommandError(p['error'])
