@@ -6,7 +6,7 @@ pytesla is a python binding to the `Tesla Model S REST API <http://docs.timdorr.
 
 It currently maps the REST API 1:1.
 
-This program requires that the client id and client secret (see <http://docs.timdorr.apiary.io/> for link to secrets) be stored as json data in ~/.pytesla, i.e.:
+This program requires that the client id and client secret (see <http://docs.timdorr.apiary.io/> for link to secrets) be stored as json data in ./pytesla, i.e.:
 
     { "client_id":     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "client_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" }
