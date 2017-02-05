@@ -1,6 +1,19 @@
 import json
-import urllib
-from http.client import HTTPSConnection, HTTPException
+
+try:
+    from urllib.parse import urlparse, urlencode
+    from urllib.request import urlopen, Request
+    from urllib.error import HTTPError
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlencode
+    from urllib2 import urlopen, Request, HTTPError
+
+try:
+    from http.client import HTTPSConnection, HTTPException
+except ImportError:
+    from httplib import HTTPSConnection, HTTPException
+
 from . import vehicle
 import os
 
@@ -21,7 +34,7 @@ class Session:
 
     def open(self):
         self._httpconn = HTTPSConnection('owner-api.teslamotors.com')
-        #self._httpconn.set_debuglevel(5)
+        self._httpconn.set_debuglevel(5)
 
         self._is_open = True
 
@@ -47,7 +60,7 @@ class Session:
                                        .format(str(self.state['access_token']))
 
         if type(post_data) == dict:
-            post = urllib.parse.urlencode(post_data)
+            post = urlencode(post_data)
         else:
             post = post_data
 
@@ -92,15 +105,18 @@ class Session:
 
         return response
 
-    def read_json(self, path, post_data = None):
-        with self.request(path, post_data) as r:
-            return json.loads(r.read().decode('utf-8'))
 
-_STATE_PATH = os.path.expanduser("~/.tesla-session")
+    def read_json(self, path, post_data = None):
+        r = self.request(path, post_data)
+        return json.loads(r.read().decode('utf-8'))
 
 class Connection(Session):
-    def __init__(self, email, passwd, log = None):
+    def __init__(self, email, passwd, log = None, temp_prefix = "./"):
         Session.__init__(self, log)
+
+        self._temp_prefix = temp_prefix
+        self._state_path = os.path.expanduser(self._temp_prefix+"tesla-session")
+
         self.load_state()
         self._vehicles = {}
 
@@ -123,7 +139,7 @@ class Connection(Session):
 
         cred = {}
 
-        with open(os.path.expanduser("~/.pytesla"), "r") as f:
+        with open(os.path.expanduser(self._temp_prefix+"tesla-creds"), "r") as f:
             cred = json.load(f)
 
         r = {}
@@ -147,12 +163,12 @@ class Connection(Session):
 
     def load_state(self):
         self.state = {}
-        if os.path.exists(_STATE_PATH):
-            with open(_STATE_PATH, "r") as f:
+        if os.path.exists(self._state_path):
+            with open(self._state_path, "r") as f:
                 self.state = json.load(f)
 
     def save_state(self):
-        with open(_STATE_PATH, 'w') as f:
+        with open(self._state_path, 'w') as f:
             json.dump(self.state, f, indent=4)
 
     def vehicle(self, vin):

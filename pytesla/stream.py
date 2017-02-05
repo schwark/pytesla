@@ -1,4 +1,12 @@
-import urllib.request
+try:
+    from urllib.parse import urlparse, urlencode
+    from urllib.request import urlopen, Request
+    from urllib.error import HTTPError
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlencode
+    from urllib2 import urlopen, Request, HTTPError
+
 import contextlib
 import base64
 
@@ -47,10 +55,10 @@ class Stream:
                 .format(self._vehicle.vehicle_id, params)
             headers = {'Authorization': 'Basic ' + auth}
 
-            self._request = urllib.request.Request(url, headers = headers)
+            self._request = Request(url, headers = headers)
 
             try:
-                response = urllib.request.urlopen(self._request)
+                response = urlopen(self._request)
 
                 if not response:
                     raise Exception("Connection failed, no response returned.")
@@ -58,7 +66,7 @@ class Stream:
                 self._log.debug("Stream connection established")
 
                 return response
-            except urllib.error.HTTPError as e:
+            except HTTPError as e:
                 if e.code == 401 and \
                    e.reason in ["provide valid authentication",
                                 "Unauthorized"]:

@@ -17,6 +17,10 @@ class Vehicle:
 
     # Helpers
     @property
+    def json(self):
+        return self._data
+
+    @property
     def vin(self):
         return self._data['vin']
 
@@ -31,6 +35,10 @@ class Vehicle:
     @property
     def state(self):
         return self._data['state']
+
+    @property
+    def display_name(self):
+        return self._data['display_name']
 
     @property
     def email(self):
