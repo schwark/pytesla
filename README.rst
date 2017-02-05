@@ -11,6 +11,8 @@ This program requires that the client id and client secret (see <http://docs.tim
     { "client_id":     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "client_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" }
 
+The values to be used are found at http://pastebin.com/raw/fX6ejAHd
+
 Usage
 =====
 
